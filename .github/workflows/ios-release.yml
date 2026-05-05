@@ -1,20 +1,11 @@
-name: iOS Release Build
+name: iOS Build for Sideload
 
 on:
   workflow_dispatch:
-    inputs:
-      build-type:
-        description: 'Build type'
-        required: true
-        default: 'debug'
-        type: choice
-        options:
-        - debug
-        - release
 
 jobs:
   build:
-    name: Build iOS (Signed)
+    name: Build iOS IPA
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
@@ -30,54 +21,20 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore MotoGPS/MotoGPS.csproj
 
-    - name: Decode Apple Certificate
-      if: inputs.build-type == 'release'
-      run: |
-        echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > certificate.p12
-      env:
-        APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-
-    - name: Decode Provisioning Profile
-      if: inputs.build-type == 'release'
-      run: |
-        echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" | base64 --decode > provisioning.mobileprovision
-      env:
-        APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
-
-    - name: Build iOS (Debug)
-      if: inputs.build-type == 'debug'
-      run: |
-        dotnet publish MotoGPS/MotoGPS.csproj \
-          -f net9.0-ios \
-          -c Debug \
-          -o ./artifacts/ios-debug \
-          /p:ArchiveOnBuild=true
-
-    - name: Build iOS (Release - Signed)
-      if: inputs.build-type == 'release'
+    - name: Build iOS (Device - Ad-hoc signing)
       run: |
         dotnet publish MotoGPS/MotoGPS.csproj \
           -f net9.0-ios \
           -c Release \
-          -o ./artifacts/ios-release \
+          -r ios-arm64 \
+          -o ./artifacts/ios \
           /p:ArchiveOnBuild=true \
-          /p:CodesignKey="${{ secrets.APPLE_CERTIFICATE_NAME }}" \
-          /p:CodesignProvision="provisioning.mobileprovision"
-      env:
-        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          /p:CodesignKey="-" \
+          /p:CodesignProvision=""
 
-    - name: Upload iOS Debug artifact
-      if: inputs.build-type == 'debug'
+    - name: Upload iOS IPA
       uses: actions/upload-artifact@v4
       with:
-        name: MotoGPS-iOS-Debug
-        path: ./artifacts/ios-debug/**/*.*
-        retention-days: 7
-
-    - name: Upload iOS Release artifact
-      if: inputs.build-type == 'release'
-      uses: actions/upload-artifact@v4
-      with:
-        name: MotoGPS-iOS-Release
-        path: ./artifacts/ios-release/**/*.ipa
+        name: MotoGPS-iOS
+        path: ./artifacts/ios/**/*.ipa
         retention-days: 30
