@@ -1,0 +1,106 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Install MAUI workload
+      run: dotnet workload install maui
+
+    - name: Restore dependencies
+      run: dotnet restore MotoGPS/MotoGPS.csproj
+
+    - name: Build Windows
+      run: |
+        dotnet publish MotoGPS/MotoGPS.csproj \
+          -f net9.0-windows10.0.19041.0 \
+          -c Release \
+          -o ./artifacts/windows
+
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MotoGPS-Windows
+        path: ./artifacts/windows/**/*.*
+        retention-days: 7
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Install MAUI workload
+      run: dotnet workload install maui
+
+    - name: Install Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Restore dependencies
+      run: dotnet restore MotoGPS/MotoGPS.csproj
+
+    - name: Build Android
+      run: |
+        dotnet publish MotoGPS/MotoGPS.csproj \
+          -f net9.0-android \
+          -c Release \
+          -o ./artifacts/android
+
+    - name: Upload Android artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MotoGPS-Android
+        path: ./artifacts/android/**/*.apk
+        retention-days: 7
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Install MAUI workload
+      run: dotnet workload install maui
+
+    - name: Restore dependencies
+      run: dotnet restore MotoGPS/MotoGPS.csproj
+
+    - name: Build iOS
+      run: |
+        dotnet publish MotoGPS/MotoGPS.csproj \
+          -f net9.0-ios \
+          -c Release \
+          -o ./artifacts/ios \
+          /p:ArchiveOnBuild=true
+          /p:RuntimeIdentifier=maccatalyst-x64
+
+    - name: Upload iOS artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MotoGPS-iOS
+        path: ./artifacts/ios/**/*.*
+        retention-days: 7

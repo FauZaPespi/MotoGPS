@@ -1,0 +1,39 @@
+# .NET MAUI
+bin/
+obj/
+
+# NuGet
+packages/
+*.nupkg
+
+# Rider
+.idea/
+*.iml
+*.ipr
+*.iws
+_ReSharper.Caches/
+
+# Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.ide
+
+# User settings
+*.dotSettings
+
+# GitHub Actions artifacts
+artifacts/
+
+# macOS
+.DS_Store
+
+# iOS build
+*.ipa
+*.app
+*.dSYM
+*.dSYM.zip
+
+# Android build
+*.apk
+*.aab

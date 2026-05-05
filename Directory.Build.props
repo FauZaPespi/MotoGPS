@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <!-- MAUI Version -->
+    <MauiVersion>9.0.9</MauiVersion>
+    
+    <!-- NuGet -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    
+    <!-- Warnings -->
+    <WarningLevel>latest</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- Code Analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+</Project>
