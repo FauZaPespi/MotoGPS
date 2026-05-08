@@ -10,6 +10,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Select latest Xcode
+      run: |
+        echo "=== Available Xcode versions ==="
+        ls /Applications/ | grep -i xcode || true
+        echo ""
+        echo "=== Current Xcode ==="
+        xcode-select --print-path
+        xcodebuild -version
+        echo ""
+        # Select the latest Xcode available
+        LATEST=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+        if [ -n "$LATEST" ]; then
+          echo "Selecting: $LATEST"
+          sudo xcode-select -s "$LATEST"
+          echo "=== Now using ==="
+          xcodebuild -version
+        fi
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
