@@ -38,16 +38,9 @@ jobs:
           /p:CodesignKey="" \
           /p:CodesignProvision=""
 
-    - name: Package as IPA
-      run: |
-        APP=$(find ./build/ios -name "*.app" | head -1)
-        mkdir -p Payload
-        cp -r "$APP" Payload/
-        zip -r MotoGPS.ipa Payload/
-
     - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       with:
         name: MotoGPS-iOS-Sideload
-        path: MotoGPS.ipa
+        path: ./build/ios/MotoGPS.ipa
         retention-days: 30
