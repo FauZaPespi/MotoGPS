@@ -1,8 +1,6 @@
 {
-  "microsoft.net.sdk.ios": "18.0.9617/9.0.300",
-  "microsoft.net.sdk.maccatalyst": "18.0.9617/9.0.300",
-  "microsoft.net.sdk.macos": "18.0.9617/9.0.300",
-  "microsoft.net.sdk.tvos": "18.0.9617/9.0.300",
-  "microsoft.net.sdk.maui": "9.0.120/9.0.300",
-  "microsoft.net.sdk.android": "35.0.105/9.0.300"
+  "microsoft.net.sdk.ios": "26.2.9008/9.0.100",
+  "microsoft.net.sdk.maccatalyst": "26.2.9008/9.0.100",
+  "microsoft.net.sdk.macos": "26.2.9008/9.0.100",
+  "microsoft.net.sdk.tvos": "26.2.9008/9.0.100"
 }
