@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: Build iOS IPA
+    name: Build iOS IPA (Sideload)
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
@@ -21,20 +21,28 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore MotoGPS/MotoGPS.csproj
 
-    - name: Build iOS (Device - Ad-hoc signing)
+    - name: Build iOS (arm64, no signing)
       run: |
         dotnet publish MotoGPS/MotoGPS.csproj \
           -f net9.0-ios \
           -c Release \
           -r ios-arm64 \
-          -o ./artifacts/ios \
-          /p:ArchiveOnBuild=true \
-          /p:CodesignKey="-" \
+          -o ./build/ios \
+          /p:ArchiveOnBuild=false \
+          /p:EnableCodeSigning=false \
+          /p:CodesignKey="" \
           /p:CodesignProvision=""
 
-    - name: Upload iOS IPA
+    - name: Package as IPA
+      run: |
+        APP=$(find ./build/ios -name "*.app" | head -1)
+        mkdir -p Payload
+        cp -r "$APP" Payload/
+        zip -r MotoGPS.ipa Payload/
+
+    - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       with:
-        name: MotoGPS-iOS
-        path: ./artifacts/ios/**/*.ipa
+        name: MotoGPS-iOS-Sideload
+        path: MotoGPS.ipa
         retention-days: 30

@@ -2,12 +2,8 @@
   "version": 1,
   "dependencies": {
     "net9.0-android": {},
-    "net9.0-android/win10-x64": {},
     "net9.0-ios": {},
-    "net9.0-ios/win10-x64": {},
     "net9.0-maccatalyst": {},
-    "net9.0-maccatalyst/win10-x64": {},
-    "net9.0-windows10.0.19041": {},
-    "net9.0-windows10.0.19041/win10-x64": {}
+    "net9.0-windows10.0.19041": {}
   }
 }

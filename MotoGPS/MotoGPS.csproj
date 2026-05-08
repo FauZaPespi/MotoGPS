@@ -24,7 +24,7 @@
         <ApplicationTitle>MotoGPS</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.motogps</ApplicationId>
+        <ApplicationId>com.fauzadev.motogps</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
