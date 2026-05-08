@@ -16,7 +16,7 @@ jobs:
         dotnet-version: 9.0.x
 
     - name: Install MAUI workload
-      run: dotnet workload install maui --sdk-version 9.0.313
+      run: dotnet workload install maui
 
     - name: Restore dependencies
       run: dotnet restore MotoGPS/MotoGPS.csproj
