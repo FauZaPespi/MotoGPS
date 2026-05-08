@@ -7,7 +7,7 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     
     <!-- Warnings -->
-    <WarningLevel>latest</WarningLevel>
+    <WarningLevel>9999</WarningLevel>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     
     <!-- Code Analysis -->
