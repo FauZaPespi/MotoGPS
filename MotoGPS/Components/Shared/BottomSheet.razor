@@ -50,74 +50,6 @@
     </div>
 </div>
 
-@code {
-    private bool _open;
-    private string _searchQuery = string.Empty;
-    private List<FavoritePlace> _favorites = new();
-    private DotNetObjectReference<BottomSheet>? _selfRef;
-
-    [Parameter] public GeoPoint? CurrentPosition { get; set; }
-    [Parameter] public EventCallback<FavoritePlace> OnFavoriteSelected { get; set; }
-
-    private bool CanAddCurrent => CurrentPosition.HasValue && !string.IsNullOrWhiteSpace(_searchQuery);
-
-    protected override void OnInitialized()
-    {
-        _favorites = Favorites.GetAll().ToList();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender) return;
-        _selfRef = DotNetObjectReference.Create(this);
-        await JS.InvokeVoidAsync("MotoGpsGestures.register", _selfRef);
-    }
-
-    [JSInvokable]
-    public void OnSwipeUp()
-    {
-        if (_open) return;
-        _open = true;
-        InvokeAsync(StateHasChanged);
-    }
-
-    [JSInvokable]
-    public void OnSwipeDown()
-    {
-        if (!_open) return;
-        _open = false;
-        InvokeAsync(StateHasChanged);
-    }
-
-    private async Task SelectFavorite(FavoritePlace place)
-    {
-        _open = false;
-        await OnFavoriteSelected.InvokeAsync(place);
-    }
-
-    private void RemoveFavorite(FavoritePlace place)
-    {
-        Favorites.Remove(place);
-        _favorites = Favorites.GetAll().ToList();
-    }
-
-    private void AddCurrentAsFavorite()
-    {
-        if (!CurrentPosition.HasValue || string.IsNullOrWhiteSpace(_searchQuery)) return;
-        var place = new FavoritePlace(_searchQuery.Trim(), CurrentPosition.Value.Latitude, CurrentPosition.Value.Longitude);
-        Favorites.Add(place);
-        _favorites = Favorites.GetAll().ToList();
-        _searchQuery = string.Empty;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        try { await JS.InvokeVoidAsync("MotoGpsGestures.unregister"); }
-        catch (JSDisconnectedException) { }
-        _selfRef?.Dispose();
-    }
-}
-
 <style>
 .bottom-sheet {
     position: fixed;
@@ -235,3 +167,71 @@
     color: #ffffff;
 }
 </style>
+
+@code {
+    private bool _open;
+    private string _searchQuery = string.Empty;
+    private List<FavoritePlace> _favorites = new();
+    private DotNetObjectReference<BottomSheet>? _selfRef;
+
+    [Parameter] public GeoPoint? CurrentPosition { get; set; }
+    [Parameter] public EventCallback<FavoritePlace> OnFavoriteSelected { get; set; }
+
+    private bool CanAddCurrent => CurrentPosition.HasValue && !string.IsNullOrWhiteSpace(_searchQuery);
+
+    protected override void OnInitialized()
+    {
+        _favorites = Favorites.GetAll().ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _selfRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("MotoGpsGestures.register", _selfRef);
+    }
+
+    [JSInvokable]
+    public void OnSwipeUp()
+    {
+        if (_open) return;
+        _open = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnSwipeDown()
+    {
+        if (!_open) return;
+        _open = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectFavorite(FavoritePlace place)
+    {
+        _open = false;
+        await OnFavoriteSelected.InvokeAsync(place);
+    }
+
+    private void RemoveFavorite(FavoritePlace place)
+    {
+        Favorites.Remove(place);
+        _favorites = Favorites.GetAll().ToList();
+    }
+
+    private void AddCurrentAsFavorite()
+    {
+        if (!CurrentPosition.HasValue || string.IsNullOrWhiteSpace(_searchQuery)) return;
+        var place = new FavoritePlace(_searchQuery.Trim(), CurrentPosition.Value.Latitude, CurrentPosition.Value.Longitude);
+        Favorites.Add(place);
+        _favorites = Favorites.GetAll().ToList();
+        _searchQuery = string.Empty;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await JS.InvokeVoidAsync("MotoGpsGestures.unregister"); }
+        catch (JSDisconnectedException) { }
+        _selfRef?.Dispose();
+    }
+}

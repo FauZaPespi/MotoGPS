@@ -1,0 +1,25 @@
+.nav-container {
+    display: grid;
+    grid-template-columns: 38% 62%;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    position: relative;
+}
+
+.dashboard-panel {
+    background-color: #111111;
+    border-right: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.map-panel {
+    background-color: #1a1a2e;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+}

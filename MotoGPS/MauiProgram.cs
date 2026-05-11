@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Devices.Sensors;
+using MotoGPS.Services;
 
 namespace MotoGPS;
 
@@ -16,6 +18,18 @@ public static class MauiProgram
             });
 
         builder.Services.AddMauiBlazorWebView();
+
+        builder.Services.AddSingleton(_ => new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(8)
+        });
+        builder.Services.AddSingleton(Geolocation.Default);
+        builder.Services.AddSingleton<ILocationService, LocationService>();
+        builder.Services.AddSingleton<ISpeedLimitService, SpeedLimitService>();
+        builder.Services.AddSingleton<IRadarService, RadarService>();
+        builder.Services.AddSingleton<IRoutingService, RoutingService>();
+        builder.Services.AddSingleton<IFavoritesService, FavoritesService>();
+        builder.Services.AddSingleton<DrivingStateService>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
