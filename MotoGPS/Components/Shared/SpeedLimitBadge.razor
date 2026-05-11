@@ -1,0 +1,17 @@
+@namespace MotoGPS.Components.Shared
+
+<svg class="speed-limit-badge" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="46" fill="#ffffff" />
+    <circle cx="50" cy="50" r="46" fill="none" stroke="#d40000" stroke-width="10" />
+    <text x="50" y="50"
+          text-anchor="middle"
+          dominant-baseline="central"
+          font-family="Arial, sans-serif"
+          font-weight="900"
+          font-size="42"
+          fill="#000000">@SpeedLimit</text>
+</svg>
+
+@code {
+    [Parameter] public int SpeedLimit { get; set; } = 50;
+}

@@ -1,25 +1,28 @@
 @page "/"
+@using MotoGPS.Components.Shared
 
 <div class="nav-container">
-    <!-- Dashboard panel (left) -->
     <div class="dashboard-panel">
-        <div class="dashboard-placeholder">Dashboard</div>
+        <DashboardPanel CurrentSpeed="@_currentSpeed" SpeedLimit="@_speedLimit" Heading="@_heading" />
     </div>
 
-    <!-- Map panel (right) -->
     <div class="map-panel">
         <div class="map-placeholder">Carte GPS</div>
     </div>
 
-    <!-- Alert overlay (full screen, pointer-events: none) -->
     <div class="alert-overlay"></div>
 
-    <!-- Bottom sheet menu -->
     <div class="bottom-sheet">
         <div class="bottom-sheet-handle"></div>
         <div class="bottom-sheet-content">Menu</div>
     </div>
 </div>
+
+@code {
+    private int _currentSpeed = 62;
+    private int _speedLimit = 50;
+    private string _heading = "N";
+}
 
 <style>
 .nav-container {

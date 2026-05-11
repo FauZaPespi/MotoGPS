@@ -1,0 +1,68 @@
+.dashboard {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+    padding: 16px;
+    gap: 12px;
+}
+
+.dashboard-top {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.compass {
+    color: #888888;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.compass-direction {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.dashboard-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-bottom {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 12px;
+}
+
+.speed-gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.speed-value {
+    font-size: clamp(5rem, 14vw, 9rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+}
+
+.speed-unit {
+    font-size: 1rem;
+    color: #888888;
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+    text-transform: uppercase;
+}
+
+.speed-limit-badge {
+    width: clamp(80px, 18vw, 140px);
+    height: clamp(80px, 18vw, 140px);
+    display: block;
+}

@@ -1,0 +1,23 @@
+@namespace MotoGPS.Components.Shared
+
+<div class="dashboard">
+    <div class="dashboard-top">
+        <div class="compass">
+            <span class="compass-direction">@Heading</span>
+        </div>
+    </div>
+
+    <div class="dashboard-center">
+        <SpeedGauge CurrentSpeed="@CurrentSpeed" />
+    </div>
+
+    <div class="dashboard-bottom">
+        <SpeedLimitBadge SpeedLimit="@SpeedLimit" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CurrentSpeed { get; set; }
+    [Parameter] public int SpeedLimit { get; set; } = 50;
+    [Parameter] public string Heading { get; set; } = "N";
+}

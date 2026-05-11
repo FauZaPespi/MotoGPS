@@ -1,0 +1,10 @@
+@namespace MotoGPS.Components.Shared
+
+<div class="speed-gauge">
+    <div class="speed-value">@CurrentSpeed</div>
+    <div class="speed-unit">km/h</div>
+</div>
+
+@code {
+    [Parameter] public int CurrentSpeed { get; set; }
+}
