@@ -29,6 +29,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IRadarService, RadarService>();
         builder.Services.AddSingleton<IRoutingService, RoutingService>();
         builder.Services.AddSingleton<IFavoritesService, FavoritesService>();
+        builder.Services.AddSingleton<IGeocodingService, GeocodingService>();
         builder.Services.AddSingleton<DrivingStateService>();
 
 #if DEBUG

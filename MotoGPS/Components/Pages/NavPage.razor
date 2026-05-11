@@ -5,6 +5,7 @@
 @implements IDisposable
 @inject DrivingStateService State
 @inject ILocationService Location
+@inject IRoutingService Routing
 
 <div class="nav-container">
     <div class="dashboard-panel">
@@ -14,16 +15,70 @@
     </div>
 
     <div class="map-panel">
-        <MapPanel />
+        <MapPanel @ref="_mapPanel" RadarPositions="@_state.RadarPositions" />
+
+        @if (_route is not null)
+        {
+            <div class="route-banner">
+                <span class="route-distance">@FormatDistance(_route.TotalDistanceM)</span>
+                <span class="route-duration">@FormatDuration(_route.TotalDurationSec)</span>
+                <button class="route-cancel" @onclick="CancelRoute">×</button>
+            </div>
+        }
     </div>
 
     <AlertOverlay Level="@_state.Level" />
 
-    <BottomSheet CurrentPosition="@_state.Position" OnFavoriteSelected="OnFavoriteSelected" />
+    <BottomSheet CurrentPosition="@_state.Position" OnNavigateTo="OnNavigateTo" />
 </div>
+
+<style>
+.route-banner {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid rgba(74, 163, 255, 0.3);
+    border-radius: 24px;
+    padding: 8px 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+    z-index: 500;
+}
+
+.route-distance {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #4aa3ff;
+}
+
+.route-duration {
+    font-size: 0.88rem;
+    color: #aaaaaa;
+}
+
+.route-cancel {
+    background: none;
+    border: none;
+    color: #666666;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 0 0 0 4px;
+    line-height: 1;
+    font: inherit;
+}
+
+.route-cancel:active { color: #ff5555; }
+</style>
 
 @code {
     private DrivingState _state = DrivingState.Empty;
+    private MapPanel _mapPanel = default!;
+    private RouteResult? _route;
 
     private string HeadingLabel => HeadingToCardinal(_state.HeadingDegrees);
 
@@ -40,12 +95,41 @@
         InvokeAsync(StateHasChanged);
     }
 
-    private Task OnFavoriteSelected(FavoritePlace place)
+    private async Task OnNavigateTo(GeoPoint destination)
     {
-        return Task.CompletedTask;
+        var from = _state.Position;
+        if (from is null) return;
+
+        var route = await Routing.CalculateAsync(from.Value, destination);
+        if (route is null) return;
+
+        _route = route;
+        await _mapPanel.DrawRouteAsync(route.Polyline);
+        StateHasChanged();
+    }
+
+    private async Task CancelRoute()
+    {
+        _route = null;
+        await _mapPanel.ClearRouteAsync();
     }
 
     public void Dispose() => State.StateChanged -= OnStateChanged;
+
+    private static string FormatDistance(double meters)
+    {
+        if (meters >= 1000)
+            return $"{meters / 1000:F1} km";
+        return $"{(int)meters} m";
+    }
+
+    private static string FormatDuration(double seconds)
+    {
+        var ts = TimeSpan.FromSeconds(seconds);
+        if (ts.TotalHours >= 1)
+            return $"{(int)ts.TotalHours}h{ts.Minutes:D2}";
+        return $"{ts.Minutes} min";
+    }
 
     private static string HeadingToCardinal(double degrees)
     {

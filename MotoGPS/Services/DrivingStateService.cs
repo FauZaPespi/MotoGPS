@@ -31,14 +31,17 @@ public sealed class DrivingStateService : IDisposable
             var limit = await _speedLimit.GetLimitAsync(update.Point);
             var radar = await _radar.GetClosestAsync(update.Point);
 
-            Current = new DrivingState(
+            var newState = new DrivingState(
                 CurrentSpeedKmh: (int)Math.Round(update.SpeedKmh),
                 SpeedLimitKmh: limit,
                 IsNearRadar: radar.IsWithin500m,
                 ClosestRadarDistanceM: radar.DistanceM,
                 Position: update.Point,
-                HeadingDegrees: update.HeadingDegrees);
+                HeadingDegrees: update.HeadingDegrees,
+                RadarPositions: radar.Positions);
 
+            if (newState == Current) return;
+            Current = newState;
             StateChanged?.Invoke(this, Current);
         }
         catch

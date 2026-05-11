@@ -5,22 +5,53 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject IFavoritesService Favorites
+@inject IGeocodingService Geocoding
 
 <div class="bottom-sheet @(_open ? "open" : "")">
     <div class="bottom-sheet-handle"></div>
 
     <div class="bottom-sheet-content">
-        <input type="search"
-               class="search-input"
-               placeholder="Rechercher une adresse..."
-               @bind="_searchQuery"
-               @bind:event="oninput" />
+        <div class="search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="search"
+                   class="search-input"
+                   placeholder="Où aller ?"
+                   value="@_searchQuery"
+                   @oninput="OnSearchInput"
+                   autocomplete="off" />
+            @if (_searching)
+            {
+                <div class="search-spinner"></div>
+            }
+        </div>
+
+        @if (_searchResults.Count > 0)
+        {
+            <ul class="search-results">
+                @foreach (var result in _searchResults)
+                {
+                    var r = result;
+                    <li class="search-result-item" @onclick="() => NavigateTo(r)">
+                        <svg class="result-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span class="result-name">@result.DisplayName</span>
+                    </li>
+                }
+            </ul>
+        }
+        else if (!string.IsNullOrWhiteSpace(_searchQuery) && !_searching)
+        {
+            <div class="search-empty">Aucun résultat</div>
+        }
 
         <div class="favorites">
             <div class="favorites-header">
                 <span>Favoris</span>
                 <button class="add-btn" @onclick="AddCurrentAsFavorite" disabled="@(!CanAddCurrent)">
-                    + Ajouter
+                    + Ajouter ici
                 </button>
             </div>
 
@@ -33,20 +64,20 @@
                 <ul class="favorites-list">
                     @foreach (var place in _favorites)
                     {
+                        var p = place;
                         <li class="favorite-item">
-                            <button class="favorite-name" @onclick="() => SelectFavorite(place)">
-                                @place.Name
+                            <button class="favorite-name" @onclick="() => NavigateTo(p.AsGeoPoint())">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" style="flex-shrink:0;color:#4aa3ff">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                                @p.Name
                             </button>
-                            <button class="remove-btn" @onclick="() => RemoveFavorite(place)" aria-label="Supprimer">
-                                ×
-                            </button>
+                            <button class="remove-btn" @onclick="() => RemoveFavorite(p)" aria-label="Supprimer">×</button>
                         </li>
                     }
                 </ul>
             }
         </div>
-
-        <button class="settings-btn">Paramètres</button>
     </div>
 </div>
 
@@ -56,12 +87,12 @@
     bottom: -100%;
     left: 0;
     right: 0;
-    height: 60%;
-    background-color: #222222;
-    border-radius: 16px 16px 0 0;
+    height: 65%;
+    background: linear-gradient(180deg, #1e1e1e 0%, #181818 100%);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    transition: bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    padding: 0 16px 16px;
+    transition: bottom 0.35s cubic-bezier(0.32, 0.72, 0, 1);
     overflow-y: auto;
 }
 
@@ -70,24 +101,110 @@
 }
 
 .bottom-sheet-handle {
-    width: 40px;
+    width: 36px;
     height: 4px;
-    background-color: #555555;
+    background: #444444;
     border-radius: 2px;
-    margin: 12px auto 16px;
+    margin: 14px auto 4px;
+}
+
+.bottom-sheet-content {
+    padding: 8px 16px 24px;
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    color: #666666;
+    pointer-events: none;
+    flex-shrink: 0;
 }
 
 .search-input {
     width: 100%;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid #333333;
-    background-color: #111111;
+    padding: 13px 14px 13px 44px;
+    border-radius: 14px;
+    border: 1px solid #2e2e2e;
+    background: #111111;
     color: #ffffff;
     font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
 }
 
-.search-input::placeholder { color: #666666; }
+.search-input:focus {
+    border-color: #4aa3ff;
+}
+
+.search-input::placeholder { color: #555555; }
+
+.search-spinner {
+    position: absolute;
+    right: 14px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #333333;
+    border-top-color: #4aa3ff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@@keyframes spin { to { transform: rotate(360deg); } }
+
+.search-results {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #222222;
+}
+
+.search-result-item:last-child { border-bottom: none; }
+
+.search-result-item:active { background: #2a2a2a; }
+
+.result-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: #4aa3ff;
+    margin-top: 2px;
+}
+
+.result-name {
+    font-size: 0.88rem;
+    color: #dddddd;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.search-empty {
+    color: #444444;
+    font-size: 0.88rem;
+    text-align: center;
+    padding: 12px 0 8px;
+    font-style: italic;
+}
 
 .favorites {
     margin-top: 20px;
@@ -98,37 +215,33 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: #888888;
-    margin-bottom: 8px;
-}
-
-.add-btn,
-.settings-btn,
-.remove-btn,
-.favorite-name {
-    background: none;
-    border: none;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
+    color: #666666;
+    margin-bottom: 10px;
 }
 
 .add-btn {
+    background: none;
+    border: 1px solid #333333;
+    border-radius: 8px;
     color: #4aa3ff;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    cursor: pointer;
 }
 
 .add-btn:disabled {
-    color: #444444;
+    color: #333333;
+    border-color: #2a2a2a;
     cursor: not-allowed;
 }
 
 .favorites-empty {
-    color: #555555;
+    color: #444444;
     font-style: italic;
+    font-size: 0.88rem;
     padding: 8px 0;
 }
 
@@ -142,40 +255,49 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #222222;
+    padding: 12px 0;
+    border-bottom: 1px solid #1e1e1e;
 }
 
 .favorite-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     text-align: left;
     flex: 1;
-    color: #ffffff;
+    color: #dddddd;
+    font-size: 0.95rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
 }
 
 .remove-btn {
-    color: #ff5555;
+    background: none;
+    border: none;
+    color: #555555;
     font-size: 1.4rem;
-    padding: 0 8px;
+    padding: 0 4px;
+    cursor: pointer;
+    transition: color 0.15s;
+    font: inherit;
 }
 
-.settings-btn {
-    margin-top: 24px;
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    background-color: #2a2a2a;
-    color: #ffffff;
-}
+.remove-btn:active { color: #ff5555; }
 </style>
 
 @code {
     private bool _open;
     private string _searchQuery = string.Empty;
     private List<FavoritePlace> _favorites = new();
+    private List<GeocodingResult> _searchResults = new();
+    private bool _searching;
     private DotNetObjectReference<BottomSheet>? _selfRef;
+    private CancellationTokenSource? _searchCts;
 
     [Parameter] public GeoPoint? CurrentPosition { get; set; }
-    [Parameter] public EventCallback<FavoritePlace> OnFavoriteSelected { get; set; }
+    [Parameter] public EventCallback<GeoPoint> OnNavigateTo { get; set; }
 
     private bool CanAddCurrent => CurrentPosition.HasValue && !string.IsNullOrWhiteSpace(_searchQuery);
 
@@ -204,14 +326,51 @@
     {
         if (!_open) return;
         _open = false;
+        _searchResults.Clear();
         InvokeAsync(StateHasChanged);
     }
 
-    private async Task SelectFavorite(FavoritePlace place)
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchQuery = e.Value?.ToString() ?? string.Empty;
+        _searchResults.Clear();
+
+        _searchCts?.Cancel();
+        _searchCts = new CancellationTokenSource();
+        var ct = _searchCts.Token;
+
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            _searching = false;
+            return;
+        }
+
+        _searching = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(400, ct);
+            var results = await Geocoding.SearchAsync(_searchQuery, ct);
+            _searchResults = results.ToList();
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            _searching = false;
+            if (!ct.IsCancellationRequested) StateHasChanged();
+        }
+    }
+
+    private async Task NavigateTo(GeoPoint point)
     {
         _open = false;
-        await OnFavoriteSelected.InvokeAsync(place);
+        _searchQuery = string.Empty;
+        _searchResults.Clear();
+        await OnNavigateTo.InvokeAsync(point);
     }
+
+    private async Task NavigateTo(GeocodingResult result) => await NavigateTo(result.Point);
 
     private void RemoveFavorite(FavoritePlace place)
     {
@@ -230,6 +389,8 @@
 
     public async ValueTask DisposeAsync()
     {
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
         try { await JS.InvokeVoidAsync("MotoGpsGestures.unregister"); }
         catch (JSDisconnectedException) { }
         _selfRef?.Dispose();

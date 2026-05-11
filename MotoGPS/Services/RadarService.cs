@@ -37,7 +37,7 @@ public sealed class RadarService : IRadarService
 
             if (!resp.IsSuccessStatusCode)
             {
-                return _cache is null ? new RadarProximity(null) : ClosestFrom(_cache.Cameras, point);
+                return _cache is null ? new RadarProximity(null, _empty) : ClosestFrom(_cache.Cameras, point);
             }
 
             await using var stream = await resp.Content.ReadAsStreamAsync(ct);
@@ -63,13 +63,15 @@ public sealed class RadarService : IRadarService
         }
         catch
         {
-            return _cache is null ? new RadarProximity(null) : ClosestFrom(_cache.Cameras, point);
+            return _cache is null ? new RadarProximity(null, _empty) : ClosestFrom(_cache.Cameras, point);
         }
     }
 
+    private static readonly IReadOnlyList<GeoPoint> _empty = Array.Empty<GeoPoint>();
+
     private static RadarProximity ClosestFrom(IReadOnlyList<GeoPoint> cameras, GeoPoint from)
     {
-        if (cameras.Count == 0) return new RadarProximity(null);
+        if (cameras.Count == 0) return new RadarProximity(null, _empty);
 
         double? best = null;
         foreach (var camera in cameras)
@@ -77,7 +79,7 @@ public sealed class RadarService : IRadarService
             var d = camera.DistanceMetersTo(from);
             if (best is null || d < best) best = d;
         }
-        return new RadarProximity(best);
+        return new RadarProximity(best, cameras);
     }
 
     private sealed record CacheEntry(GeoPoint Anchor, IReadOnlyList<GeoPoint> Cameras, DateTimeOffset At);

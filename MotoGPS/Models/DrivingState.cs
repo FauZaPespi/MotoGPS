@@ -6,7 +6,8 @@ public sealed record DrivingState(
     bool IsNearRadar,
     double? ClosestRadarDistanceM,
     GeoPoint? Position,
-    double HeadingDegrees)
+    double HeadingDegrees,
+    IReadOnlyList<GeoPoint>? RadarPositions = null)
 {
     public bool IsSpeeding => CurrentSpeedKmh > SpeedLimitKmh;
 
@@ -24,5 +25,6 @@ public sealed record DrivingState(
         IsNearRadar: false,
         ClosestRadarDistanceM: null,
         Position: null,
-        HeadingDegrees: 0);
+        HeadingDegrees: 0,
+        RadarPositions: null);
 }

@@ -3,16 +3,17 @@
         map: null,
         marker: null,
         routeLayer: null,
-        tileLayer: null
+        tileLayer: null,
+        radarMarkers: []
     };
 
     const carIcon = L.divIcon({
         className: 'motogps-car-icon',
-        html: '<svg viewBox="0 0 24 24" width="32" height="32">'
-            + '<path d="M12 2 L20 20 L12 16 L4 20 Z" fill="#4aa3ff" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round"/>'
+        html: '<svg viewBox="0 0 24 24" width="36" height="36">'
+            + '<path d="M12 2 L20 20 L12 16 L4 20 Z" fill="#4aa3ff" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>'
             + '</svg>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
     });
 
     window.MotoGpsMap = {
@@ -26,15 +27,19 @@
                 center: [lat, lon],
                 zoom: 16,
                 zoomControl: false,
-                attributionControl: false
+                attributionControl: true
             });
 
             state.tileLayer = L.tileLayer(
-                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                { maxZoom: 19, subdomains: 'abcd' }
+                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 20
+                }
             ).addTo(map);
 
-            state.marker = L.marker([lat, lon], { icon: carIcon, rotationAngle: 0 }).addTo(map);
+            state.marker = L.marker([lat, lon], { icon: carIcon }).addTo(map);
             state.map = map;
         },
 
@@ -45,8 +50,6 @@
 
             const el = state.marker.getElement();
             if (el && Number.isFinite(heading)) {
-                el.style.transformOrigin = 'center';
-                el.style.setProperty('--motogps-rotation', heading + 'deg');
                 const svg = el.querySelector('svg');
                 if (svg) svg.style.transform = 'rotate(' + heading + 'deg)';
             }
@@ -54,16 +57,39 @@
             state.map.panTo([lat, lon], { animate: true, duration: 0.4 });
         },
 
+        updateRadars(positions) {
+            if (!state.map) return;
+
+            state.radarMarkers.forEach(m => state.map.removeLayer(m));
+            state.radarMarkers = [];
+
+            if (!positions || positions.length === 0) return;
+
+            positions.forEach(p => {
+                const m = L.circleMarker([p.latitude, p.longitude], {
+                    radius: 9,
+                    fillColor: '#ff3333',
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.85
+                });
+                m.bindTooltip('Radar', { permanent: false, direction: 'top' });
+                m.addTo(state.map);
+                state.radarMarkers.push(m);
+            });
+        },
+
         drawRoute(coords) {
             if (!state.map) return;
             this.clearRoute();
             if (!coords || coords.length === 0) return;
 
-            const latlngs = coords.map(c => [c[1], c[0]]); // GeoJSON: [lon, lat]
+            const latlngs = coords.map(c => [c[1], c[0]]);
             state.routeLayer = L.polyline(latlngs, {
                 color: '#4aa3ff',
-                weight: 5,
-                opacity: 0.9,
+                weight: 6,
+                opacity: 0.95,
                 lineCap: 'round',
                 lineJoin: 'round'
             }).addTo(state.map);
@@ -84,6 +110,7 @@
                 state.map = null;
                 state.marker = null;
                 state.routeLayer = null;
+                state.radarMarkers = [];
             }
         }
     };

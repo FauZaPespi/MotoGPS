@@ -1,10 +1,13 @@
 @namespace MotoGPS.Components.Shared
 @using MotoGPS.Models
 
-<div class="alert-overlay @CssClass" aria-hidden="true"></div>
+<div class="alert-overlay @CssClass" @key="@_animKey" aria-hidden="true"></div>
 
 @code {
     [Parameter] public AlertLevel Level { get; set; } = AlertLevel.None;
+
+    private AlertLevel _prevLevel;
+    private int _animKey;
 
     private string CssClass => Level switch
     {
@@ -13,4 +16,13 @@
         AlertLevel.Critical => "alert-critical",
         _                   => string.Empty
     };
+
+    protected override void OnParametersSet()
+    {
+        if (Level != _prevLevel)
+        {
+            _animKey++;
+            _prevLevel = Level;
+        }
+    }
 }
