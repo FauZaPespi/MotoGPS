@@ -13,10 +13,7 @@
 
     <AlertOverlay Level="@_alertLevel" />
 
-    <div class="bottom-sheet">
-        <div class="bottom-sheet-handle"></div>
-        <div class="bottom-sheet-content">Menu</div>
-    </div>
+    <BottomSheet />
 </div>
 
 @code {
@@ -64,32 +61,4 @@
     letter-spacing: 0.1em;
 }
 
-.bottom-sheet {
-    position: fixed;
-    bottom: -100%;
-    left: 0;
-    right: 0;
-    height: 60%;
-    background-color: #222222;
-    border-radius: 16px 16px 0 0;
-    z-index: 1000;
-    transition: bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    padding: 0 16px 16px;
-}
-
-.bottom-sheet.open {
-    bottom: 0;
-}
-
-.bottom-sheet-handle {
-    width: 40px;
-    height: 4px;
-    background-color: #555555;
-    border-radius: 2px;
-    margin: 12px auto 16px;
-}
-
-.bottom-sheet-content {
-    color: #ffffff;
-}
 </style>

@@ -1,0 +1,237 @@
+@namespace MotoGPS.Components.Shared
+@using Microsoft.JSInterop
+@using MotoGPS.Models
+@using MotoGPS.Services
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject IFavoritesService Favorites
+
+<div class="bottom-sheet @(_open ? "open" : "")">
+    <div class="bottom-sheet-handle"></div>
+
+    <div class="bottom-sheet-content">
+        <input type="search"
+               class="search-input"
+               placeholder="Rechercher une adresse..."
+               @bind="_searchQuery"
+               @bind:event="oninput" />
+
+        <div class="favorites">
+            <div class="favorites-header">
+                <span>Favoris</span>
+                <button class="add-btn" @onclick="AddCurrentAsFavorite" disabled="@(!CanAddCurrent)">
+                    + Ajouter
+                </button>
+            </div>
+
+            @if (_favorites.Count == 0)
+            {
+                <div class="favorites-empty">Aucun favori enregistré</div>
+            }
+            else
+            {
+                <ul class="favorites-list">
+                    @foreach (var place in _favorites)
+                    {
+                        <li class="favorite-item">
+                            <button class="favorite-name" @onclick="() => SelectFavorite(place)">
+                                @place.Name
+                            </button>
+                            <button class="remove-btn" @onclick="() => RemoveFavorite(place)" aria-label="Supprimer">
+                                ×
+                            </button>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <button class="settings-btn">Paramètres</button>
+    </div>
+</div>
+
+@code {
+    private bool _open;
+    private string _searchQuery = string.Empty;
+    private List<FavoritePlace> _favorites = new();
+    private DotNetObjectReference<BottomSheet>? _selfRef;
+
+    [Parameter] public GeoPoint? CurrentPosition { get; set; }
+    [Parameter] public EventCallback<FavoritePlace> OnFavoriteSelected { get; set; }
+
+    private bool CanAddCurrent => CurrentPosition.HasValue && !string.IsNullOrWhiteSpace(_searchQuery);
+
+    protected override void OnInitialized()
+    {
+        _favorites = Favorites.GetAll().ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _selfRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("MotoGpsGestures.register", _selfRef);
+    }
+
+    [JSInvokable]
+    public void OnSwipeUp()
+    {
+        if (_open) return;
+        _open = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnSwipeDown()
+    {
+        if (!_open) return;
+        _open = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectFavorite(FavoritePlace place)
+    {
+        _open = false;
+        await OnFavoriteSelected.InvokeAsync(place);
+    }
+
+    private void RemoveFavorite(FavoritePlace place)
+    {
+        Favorites.Remove(place);
+        _favorites = Favorites.GetAll().ToList();
+    }
+
+    private void AddCurrentAsFavorite()
+    {
+        if (!CurrentPosition.HasValue || string.IsNullOrWhiteSpace(_searchQuery)) return;
+        var place = new FavoritePlace(_searchQuery.Trim(), CurrentPosition.Value.Latitude, CurrentPosition.Value.Longitude);
+        Favorites.Add(place);
+        _favorites = Favorites.GetAll().ToList();
+        _searchQuery = string.Empty;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await JS.InvokeVoidAsync("MotoGpsGestures.unregister"); }
+        catch (JSDisconnectedException) { }
+        _selfRef?.Dispose();
+    }
+}
+
+<style>
+.bottom-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background-color: #222222;
+    border-radius: 16px 16px 0 0;
+    z-index: 1000;
+    transition: bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    padding: 0 16px 16px;
+    overflow-y: auto;
+}
+
+.bottom-sheet.open {
+    bottom: 0;
+}
+
+.bottom-sheet-handle {
+    width: 40px;
+    height: 4px;
+    background-color: #555555;
+    border-radius: 2px;
+    margin: 12px auto 16px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #333333;
+    background-color: #111111;
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.search-input::placeholder { color: #666666; }
+
+.favorites {
+    margin-top: 20px;
+    color: #ffffff;
+}
+
+.favorites-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #888888;
+    margin-bottom: 8px;
+}
+
+.add-btn,
+.settings-btn,
+.remove-btn,
+.favorite-name {
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.add-btn {
+    color: #4aa3ff;
+    font-size: 0.8rem;
+}
+
+.add-btn:disabled {
+    color: #444444;
+    cursor: not-allowed;
+}
+
+.favorites-empty {
+    color: #555555;
+    font-style: italic;
+    padding: 8px 0;
+}
+
+.favorites-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.favorite-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #222222;
+}
+
+.favorite-name {
+    text-align: left;
+    flex: 1;
+    color: #ffffff;
+}
+
+.remove-btn {
+    color: #ff5555;
+    font-size: 1.4rem;
+    padding: 0 8px;
+}
+
+.settings-btn {
+    margin-top: 24px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
+</style>
