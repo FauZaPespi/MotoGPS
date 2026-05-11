@@ -1,0 +1,16 @@
+@namespace MotoGPS.Components.Shared
+@using MotoGPS.Models
+
+<div class="alert-overlay @CssClass" aria-hidden="true"></div>
+
+@code {
+    [Parameter] public AlertLevel Level { get; set; } = AlertLevel.None;
+
+    private string CssClass => Level switch
+    {
+        AlertLevel.Speeding => "alert-speeding",
+        AlertLevel.Radar    => "alert-radar",
+        AlertLevel.Critical => "alert-critical",
+        _                   => string.Empty
+    };
+}
