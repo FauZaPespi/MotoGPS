@@ -38,9 +38,23 @@ jobs:
           /p:CodesignKey="" \
           /p:CodesignProvision=""
 
+    - name: Package .app as unsigned .ipa
+      run: |
+        APP_DIR=$(find ./build/ios -type d -name "*.app" | head -n 1)
+        if [ -z "$APP_DIR" ]; then
+          echo "::error::No .app bundle found under ./build/ios"
+          find ./build/ios -maxdepth 3 -type d
+          exit 1
+        fi
+        echo "Found .app at $APP_DIR"
+        mkdir -p ./build/ipa/Payload
+        cp -R "$APP_DIR" ./build/ipa/Payload/
+        (cd ./build/ipa && zip -qr MotoGPS.ipa Payload)
+        ls -lh ./build/ipa/MotoGPS.ipa
+
     - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       with:
         name: MotoGPS-iOS-Sideload
-        path: ./build/ios/MotoGPS.ipa
+        path: ./build/ipa/MotoGPS.ipa
         retention-days: 30
