@@ -1,0 +1,97 @@
+@page "/"
+
+<div class="nav-container">
+    <!-- Dashboard panel (left) -->
+    <div class="dashboard-panel">
+        <div class="dashboard-placeholder">Dashboard</div>
+    </div>
+
+    <!-- Map panel (right) -->
+    <div class="map-panel">
+        <div class="map-placeholder">Carte GPS</div>
+    </div>
+
+    <!-- Alert overlay (full screen, pointer-events: none) -->
+    <div class="alert-overlay"></div>
+
+    <!-- Bottom sheet menu -->
+    <div class="bottom-sheet">
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content">Menu</div>
+    </div>
+</div>
+
+<style>
+.nav-container {
+    display: grid;
+    grid-template-columns: 38% 62%;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    position: relative;
+}
+
+.dashboard-panel {
+    background-color: #111111;
+    border-right: 1px solid #333333;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.map-panel {
+    background-color: #1a1a2e;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+}
+
+.dashboard-placeholder,
+.map-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #555555;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+}
+
+.alert-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.bottom-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background-color: #222222;
+    border-radius: 16px 16px 0 0;
+    z-index: 1000;
+    transition: bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    padding: 0 16px 16px;
+}
+
+.bottom-sheet.open {
+    bottom: 0;
+}
+
+.bottom-sheet-handle {
+    width: 40px;
+    height: 4px;
+    background-color: #555555;
+    border-radius: 2px;
+    margin: 12px auto 16px;
+}
+
+.bottom-sheet-content {
+    color: #ffffff;
+}
+</style>
